@@ -5,3 +5,5 @@ Twitter Extraction Widget : https://shivong27.shinyapps.io/Twitter_Analytics_Hyg
 
 Plotly Viz Widget : https://shivong27.shinyapps.io/PlotlyViz_Hygieia/
 
+Weather API Widget : https://shivong27.shinyapps.io/WeatherAPI_Hygieia/
+

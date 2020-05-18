@@ -7,3 +7,4 @@ Plotly Viz Widget : https://shivong27.shinyapps.io/PlotlyViz_Hygieia/
 
 Weather API Widget : https://shiivong.shinyapps.io/Weather_Hygieia/
 
+Nearest Hospital Finder : https://shivong27.shinyapps.io/NearestHospitalFinder_Hygieia/

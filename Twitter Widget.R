@@ -1,3 +1,8 @@
+# THIS APPLICATION WILL LET THE USER SEARCH ANYTHING ON TWITTER (ALTHOUGH IT IS RECOMMENDED THAT THE USER SEARCHES ONLY FOR INFECTIONS)
+# THIS WILL HELP THE USER UNDERSTAND WHAT ARE PEOPLE TALKING ABOUT ONLINE ABOUT ANYTHING
+
+# Initializing all packages
+
 library(shinydashboard)
 library(shiny)
 library(shinyalert)
@@ -29,212 +34,155 @@ create_token(app = app_name,
              access_token = access_token,
              access_secret = access_secret) # Creating Access Consumer Tokens
 
-ui <- dashboardPage(skin = "blue", 
+# UI side design
+
+ui <- dashboardPage(skin = "blue", # Making the ehader blue
                     
-                    dashboardHeader(title = "Twitter Widget"
+                    dashboardHeader(title = "Twitter Widget" # Declaring header title
                                     
                                     
                                     
                                     
                     ),
                     
-                    dashboardSidebar(
+                    dashboardSidebar( # Initializing sidebar for the dashboard
                       
                       fluidRow(column(12, div(style = "height:100px", 
                                               
-                                              searchInput(inputId = "TwitterSearch", label = "Infections People are talking about",
-                                                          placeholder = "COVID-19", btnSearch = icon("search"), btnReset = icon("remove")))
+                                              searchInput(inputId = "TwitterSearch", label = "Infections People are talking about", # Declaring user input id and label
+                                                          placeholder = "COVID-19", btnSearch = icon("search"), btnReset = icon("remove"))) # Declaring search options and placeholders and icons
                       )),
                       
                       fluidRow(column(12, div(style = "height:100px", 
                                               
-                                              selectInput(inputId = "TweetType", label = "Tweet Type",
-                                                          choices = c("popular", "mixed", "recent"),
-                                                          selected = "popular", multiple = FALSE))
+                                              selectInput(inputId = "TweetType", label = "Tweet Type", # Declaring input id and label
+                                                          choices = c("popular", "mixed", "recent"), # Declaring the choices for the user
+                                                          selected = "popular", multiple = FALSE)) # Disabling multi-select
                       )),
-                    
+                      
                       fluidRow(column(12, div(style = "height:100px", 
                                               
-                                              sliderInput(inputId = "NumberOfTweets", label = "Desired No. of Tweets",
-                                                          min = 1, max = 1000, value = 100, step = 1))
+                                              sliderInput(inputId = "NumberOfTweets", label = "Desired No. of Tweets", # Declaring the input id for tweets and the labels
+                                                          min = 1, max = 1000, value = 100, step = 1)) # Declaring the specifications for the slider input
                       )),
                       
                       
-                      fluidRow(column(12, div(style = "height:200px")
+                      fluidRow(column(12, div(style = "height:200px") # Leaving some space after the slider input
                                       
                       ))
                       
                       
                     ),
                     
-                    dashboardBody( useShinyalert(),
-                      
-                      tags$head(tags$style(HTML('
-                                                .main-header .logo {
-                                                font-family: "Georgia", Times,
-                                                "Times New Roman",
-                                                font-weight: bold;
-                                                font-size: 24px;
-                                                font-style: italic;
-                                                }
-                                                '))),
-                      
-                      fluidRow(
-                        
-                        tabBox(height = "1000px", width = "1000px",
-                               
-                               tabPanel(title = tagList(icon("user", class = "fas fa-project-diagram")
-                                                        
-                                                        , "Tweet Feed Analytics"),
-                                        
-                                        box(title = "TWEET WORDCLOUD", status = "primary", solidHeader = TRUE,
+                    dashboardBody( useShinyalert(), # Enabling Shinyalert mechanism
+                                   
+                                   tags$head(tags$style(HTML('
+                                                             .main-header .logo {
+                                                             font-family: "Georgia", Times,
+                                                             "Times New Roman",
+                                                             font-weight: bold;
+                                                             font-size: 24px;
+                                                             font-style: italic;
+                                                             }
+                                                             '))), # Making a CSS class for the font and font size
+                                   
+                                   tags$style(type="text/css", # Making a custom CSS class to hide all errors popping up on the front end
+                                              ".shiny-output-error { visibility: hidden; }",
+                                              ".shiny-output-error:before { visibility: hidden; }"
+                                   ),
+                                   
+                                   fluidRow(
+                                     
+                                     tabBox(height = "1000px", width = "1000px", # Making the dimensions for the web page
                                             
-                                            collapsible = TRUE, wordcloud2Output("TweetWordCloud"), width = 97),
-                                        
-                                        box(title = "TWEET COUNT", status = "primary", solidHeader = TRUE,
+                                            tabPanel(title = tagList(icon("user", class = "fas fa-project-diagram") # Fixing the icon for the tabpanel
+                                                                     
+                                                                     , "Tweet Feed Analytics"),
+                                                     
+                                                     box(title = "TWEET WORDCLOUD", status = "primary", solidHeader = TRUE, 
+                                                         
+                                                         collapsible = TRUE, wordcloud2Output("TweetWordCloud"), width = 97), # Sending the wordcloud through the render function
+                                                     
+                                                     box(title = "TWEETS", status = "primary", solidHeader = TRUE,
+                                                         
+                                                         collapsible = TRUE, DT::dataTableOutput("Tweets"), width = 97) # Sending the table data output through a render finction
+                                                     
+                                                     
+                                            )
                                             
-                                            collapsible = TRUE, plotOutput("TweetCount"), width = 97),
-                                        
-                                        box(title = "TWEET SENTIMENT", status = "primary", solidHeader = TRUE,
-                                            
-                                            collapsible = TRUE, plotOutput("TweetSentiment"), width = 97),
-                                        
-                                        box(title = "TWEET PIE SENTIMENT", status = "primary", solidHeader = TRUE,
-                                            
-                                            collapsible = TRUE, plotOutput("PieSentiment"), width = 97)
-                                        
-                                        
-                               )
-                               
-                        )
-                      )))
+                                     )
+                                   )))
 
-
+# Server side design
 
 server <- function(input, output, session) {
   
-      shinyalert(title = "INSTRUCTIONS TO USE", text = "Enter the desired topic you want to search for on Twitter in the
-                 textbox on the left!", type = "info", showConfirmButton = TRUE, confirmButtonText = "GOT IT!",
-                 confirmButtonCol = "#4CA3DD", timer = 30000)
+  shinyalert(title = "INSTRUCTIONS TO USE", text = "Enter the desired topic you want to search for on Twitter in the
+             textbox on the left!", type = "info", showConfirmButton = TRUE, confirmButtonText = "GOT IT!",
+             confirmButtonCol = "#4CA3DD") # Shinyalert popup to show instruct the user on how to use the application
   
-      output$TweetCount <- renderPlot({
-          
-         tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # Searching for tweets on Twitter
-        
-         tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location)
-        
-         tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$location, tweets_extracted_dirty$text)))
-        
-         colnames(tweets_extracted_df) <- c("Name", "Location", "Tweet")
-        
-         tweets_extracted_dirty$stripped_Text <- gsub("http:\\S+", "", tweets_extracted_dirty$text)
-        
-         tweets_extracted_dirty_stemmed <- tweets_extracted_dirty %>% select(stripped_Text) %>% unnest_tokens(word, stripped_Text)
-        
-         cleaned_tweets <- tweets_extracted_dirty_stemmed %>% anti_join(stop_words)
-        
-         cleaned_tweets %>% count(word, sort = TRUE) %>% top_n(20) %>% mutate(word = reorder(word, n)) %>% 
-                            ggplot(aes(x = word, y = n)) + geom_col() + xlab("Word") + ylab("Unique Word Count") + coord_flip() + theme_bw()
-          
-      })
-      
-      output$TweetSentiment <- renderPlot({
-        
-        tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # Searching for tweets on Twitter
-        
-        tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location)
-        
-        tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$location, tweets_extracted_dirty$text)))
-        
-        colnames(tweets_extracted_df) <- c("Name", "Location", "Tweet")
-        
-        tweets_extracted_dirty$stripped_Text <- gsub("http:\\S+", "", tweets_extracted_dirty$text)
-        
-        tweets_extracted_dirty_stemmed <- tweets_extracted_dirty %>% select(stripped_Text) %>% unnest_tokens(word, stripped_Text)
-        
-        cleaned_tweets <- tweets_extracted_dirty_stemmed %>% anti_join(stop_words)
-        
-        cleaned_tweets_bing <- cleaned_tweets %>% inner_join(get_sentiments("bing")) %>% count(word, sentiment, sort = TRUE) %>% ungroup()
-        
-        cleaned_tweets_bing %>% group_by(sentiment) %>% top_n(10) %>% ungroup() %>% mutate(word = reorder(word, n)) %>%
-                                ggplot(aes(word, n, fill = sentiment)) + geom_col(show.legend = FALSE) + facet_wrap(~sentiment, scales = "free_y") +
-                                labs(title = "Overall Tweets Sentiment", y = "Contribution to Sentiment") + coord_flip() + theme_bw()
-        
-    })
-      
-    output$TweetWordCloud <- renderWordcloud2({
-      
-      tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # Searching for tweets on Twitter
-      
-      tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location)
-      
-      tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$location, tweets_extracted_dirty$text)))
-      
-      colnames(tweets_extracted_df) <- c("Name", "Location", "Tweet")
-      
-      tweets_corpus <- Corpus(VectorSource(tweets_extracted_df$Tweet))
-      
-      removeSpace <- content_transformer(function(x, pattern) gsub(pattern, " ", x))
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeSpace, "/")
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeSpace, "@")
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeSpace, "\\|")
-      
-      tweets_corpus <- tm_map(tweets_corpus, content_transformer(tolower))
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeNumbers)
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeWords, stopwords("english"))
-      
-      tweets_corpus <- tm_map(tweets_corpus, removeWords, c("https", "tco"))
-      
-      tweets_corpus <- tm_map(tweets_corpus, removePunctuation)
-      
-      tweets_corpus <- tm_map(tweets_corpus, stripWhitespace)
-      
-      tweets_corpus_tdm <- TermDocumentMatrix(tweets_corpus)
-      
-      tweets_corpus_tdm_matrix <- as.matrix(tweets_corpus_tdm)
-      
-      tweets_corpus_tdm_matrix_sorted <- sort(rowSums(tweets_corpus_tdm_matrix), decreasing = TRUE)
-      
-      tweets_wordcloud <- data.frame(word = names(tweets_corpus_tdm_matrix_sorted), freq = tweets_corpus_tdm_matrix_sorted)
-      
-      wordcloud2(data = tweets_wordcloud, size = 1.5, color = "random-dark", backgroundColor = "black")
-      
-    })
+  
+  output$TweetWordCloud <- renderWordcloud2({ # Render function for the wordcloud
     
-  output$PieSentiment <- renderPlot({
+    tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # Searching for tweets on Twitter using user inputs
     
-    tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # Searching for tweets on Twitter
+    tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location) # Selecting only the relevant columns for analysis
     
-    tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location)
+    tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$text, tweets_extracted_dirty$location))) # Combining columns for analysis
     
-    tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$location, tweets_extracted_dirty$text)))
+    colnames(tweets_extracted_df) <- c("Name", "Tweet", "Location") # Renaming columns
     
-    colnames(tweets_extracted_df) <- c("Name", "Location", "Tweet")
+    tweets_corpus <- Corpus(VectorSource(tweets_extracted_df$Tweet)) # Converting the dataframe into a Vector Corpus
     
-    tweets_extracted_dirty$stripped_Text <- gsub("http:\\S+", "", tweets_extracted_dirty$text)
+    removeSpace <- content_transformer(function(x, pattern) gsub(pattern, " ", x)) # Removing whitespaces
     
-    tweets_extracted_dirty_stemmed <- tweets_extracted_dirty %>% select(stripped_Text) %>% unnest_tokens(word, stripped_Text)
+    tweets_corpus <- tm_map(tweets_corpus, removeSpace, "/") # Removing slashes
     
-    cleaned_tweets <- tweets_extracted_dirty_stemmed %>% anti_join(stop_words)
+    tweets_corpus <- tm_map(tweets_corpus, removeSpace, "@") # Removing @ symbols
     
-    tweet_sentiment <- get_sentiments("nrc")
+    tweets_corpus <- tm_map(tweets_corpus, removeSpace, "\\|") # Removing | symbols
     
-    nrc_words <- cleaned_tweets %>% inner_join(tweet_sentiment, by = "word")
+    tweets_corpus <- tm_map(tweets_corpus, content_transformer(tolower)) # Converting everything to lower case
     
-    pie_words<- nrc_words %>% group_by(sentiment) %>% tally %>% arrange(desc(n))
+    tweets_corpus <- tm_map(tweets_corpus, removeNumbers) # Removing numbers
     
-    ggpie(pie_words, "n", label = "sentiment", 
-          fill = "sentiment", color = "white", 
-          palette = "Spectral", size = 1)
+    tweets_corpus <- tm_map(tweets_corpus, removeWords, stopwords("english")) # Removing stopwords from the data
+    
+    tweets_corpus <- tm_map(tweets_corpus, removeWords, c("https", "tco")) # Removing tco and https words as they keep popping up
+    
+    tweets_corpus <- tm_map(tweets_corpus, removePunctuation) # Removing all punctuations
+    
+    tweets_corpus <- tm_map(tweets_corpus, stripWhitespace) # Removing whitespaces again
+    
+    tweets_corpus_tdm <- TermDocumentMatrix(tweets_corpus) # Converting the corpus in to a term-document-matrix
+    
+    tweets_corpus_tdm_matrix <- as.matrix(tweets_corpus_tdm) # Converting the tdm into a matrix for calculations
+    
+    tweets_corpus_tdm_matrix_sorted <- sort(rowSums(tweets_corpus_tdm_matrix), decreasing = TRUE) # Sorting words based on frequency
+    
+    tweets_wordcloud <- data.frame(word = names(tweets_corpus_tdm_matrix_sorted), freq = tweets_corpus_tdm_matrix_sorted) # Creating a dataframe
+    
+    wordcloud2(data = tweets_wordcloud, size = 1.5, color = "random-dark", backgroundColor = "black") # Making the wordcloud with a dark theme
     
   })
- 
   
-}
+  output$Tweets <- DT::renderDataTable({
+    
+    tweets_extracted <- search_tweets(input$TwitterSearch, n = input$NumberOfTweets, type = input$TweetType, include_rts = FALSE) # # Searching for tweets on Twitter using user inputs
+    
+    tweets_extracted_dirty <- tweets_extracted %>% select(name, text, location) # Selecting only the relevant columns for analysis
+    
+    tweets_extracted_df <- as.data.frame(cbind(tweets_extracted_dirty$name, cbind(tweets_extracted_dirty$text, tweets_extracted_dirty$location))) # Combining columns for analysis
+    
+    colnames(tweets_extracted_df) <- c("Name", "Tweet", "Location") # Renaming columns
+    
+    tweets_extracted_df # Returning tweets data as a data frame
+    
+  })
+  
+  
+  
+  
+} # Closing server side
 
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server) # Launching Shiny app

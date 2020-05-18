@@ -1,3 +1,9 @@
+# THIS APPLICATION WARNS THE USER ABOUT DRASTIC CHANGES IN NOT JUST TEMPERATURE, BUT ALSO WIND SPEED, HUMIDITY AND PRESSURE AND THE
+# USER CAN LOOK AT VARIOUS VISUALIZATIONS TO BETTER UNDERSTAND THE CALM BEFORE THE STORM, OR MAYBE JUST THE CALM OR JUST STORM,
+# DEPENDING ON THE WEATHER
+
+# THIS APPLICATION HAS BEEN DEVELOPED BY HYGIEIA, A PLATFORM FOR PREVENTING INFECTIONS AT THE WORKPLACE
+
 # Initializing all packages
 
 library(shinydashboard)
@@ -112,7 +118,7 @@ server <- function(input, output) {
   
   shinyalert(title = "WELCOME TO OUR WEATHER API!", type = "info", showConfirmButton = TRUE, confirmButtonText = "GOT IT!", 
              text = "You will now be able to receive warnings about 
-             major temperature fluctuations and preventive measures!") # A pop-up alert to let the user know what the application is about
+             major temperature fluctuations and see live changes in wind speeds, humidity and pressure!") # A pop-up alert to let the user know what the application is about
   
   owmr_settings("ece333c8c4fcf1e8b62947374d3c34f5") # Setting API Access token
   
@@ -212,7 +218,7 @@ server <- function(input, output) {
   output$Humidity <- renderPlot({
     
       melbs_forecast_tidy <- melbs_forecast %>% select(date, humidity_avg) %>% 
-      gather(key = "Humidity", value = "value", -date) # Transforming humidity data to plot as a line chart
+                             gather(key = "Humidity", value = "value", -date) # Transforming humidity data to plot as a line chart
     
       melbs_forecast_tidy %>% ggplot(aes(x = date, y = value, label = round(value, 2))) + 
       geom_line(aes(color = 'Humidity')) + 
@@ -228,7 +234,7 @@ server <- function(input, output) {
   output$Pressure <- renderPlot({
     
       melbs_forecast_tidy <- melbs_forecast %>% select(date, pressure_avg) %>% 
-      gather(key = "Pressure", value = "value", -date) # Transforming pressure data to plot as a line chart
+                             gather(key = "Pressure", value = "value", -date) # Transforming pressure data to plot as a line chart
     
       melbs_forecast_tidy %>% ggplot(aes(x = date, y = value, label = round(value, 2))) + 
       geom_line(aes(color = 'Pressure')) + 
@@ -241,6 +247,27 @@ server <- function(input, output) {
     
   })
   
-}
+  for(i in 1:nrow(melbs_forecast)) { # Running a loop to get the emperature difference on consecutive days
+    
+    melbs_forecast$temp_diff_avg[i] <- melbs_forecast$temp_avg[i] - melbs_forecast$temp_avg[i+1] # Storing the data as a new column
+    
+  }
+  
+  melbs_forecast$temp_diff_avg[is.na(melbs_forecast$temp_diff_avg)] <- 0 # Converting NA values to 0 for simplicity
+  
+  for(i in 1:6) { # Running a loop to check if there are any major temperature fluctuations
+    
+    if(melbs_forecast$temp_diff_avg[i] > 3 | melbs_forecast$temp_diff_avg[i] < -3) { # Checking if there is a difference of more than 3 degrees, both ways
+      
+      Sys.sleep(7) # Sleeping time to give the first Shinyalert popup 7 seconds so it can be viewed by the user
+      
+      textTemp <- paste("There will be a temperature fluctuation of", paste(melbs_forecast$temp_diff_avg[i], 
+                                                                paste("degrees", paste("on", melbs_forecast$date[i+1])))) # Making a custom modal message for temperature fluctuations
+      
+      shinyalert(title = "Watch out!", text = textTemp, type = "warning") # Enabling Shinyalert to do what it does best, popup!
+    }
+  }
+  
+} # Closing the server side design
 
 shinyApp(ui = ui, server = server)

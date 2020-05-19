@@ -12,6 +12,11 @@ Shiny is an open-source R package that makes it easy to build interactive web ap
 
 # Plotly Viz Widget : https://shivong27.shinyapps.io/PlotlyViz_Hygieia/
 
+This application helps the user understand the distribution of certain top diseases across industries, how they spread and what has been their trend over the past few years as well as how gender and age plays an important role in spread.  The data has been collected from one of the Australian Government agencies which are like CDC in the United States. The data shows us the prevalent infections with number of cases in each gender and in which year the cases were recorded. 
+
+We have used Plotly, Open Source Graphing Library Examples of how to make line plots, scatter plots, area charts, bar charts, error bars, box plots, histograms, heatmaps, subplots, multiple-axes, and 3D (WebGL based) charts. Plotly R is free and open source and you can view the source, report issues or contribute on GitHub. You can access Plotly here : https://plotly.com/r/
+
+
 # Weather API Widget : https://shiivong.shinyapps.io/Weather_Hygieia/
 
 This applications warns the user about drastic changes in not just the temperature, but also wind speed, humidity and pressure. The user can also look at the various visualizations to better understand the weather for the next 5 days an prepare his/her day well in advance. In our personal experience, we have seen people who are very sensitive to minor temperature fluctuations and fall sick. The app has been made specifically for Melbourne, Victoria, Australia as a proof of concept and can be extended to include other major cities in other countries as well. This application paints an overall good picture with what’s to expect in the next 5 days with respect to weather and has state-of-the-art forecasts which makes everyone’s life easier.
